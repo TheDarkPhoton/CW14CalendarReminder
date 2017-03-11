@@ -5,16 +5,15 @@ import java.util.Observable;
 /**
  * Created by dovydas on 11/03/17.
  */
-public class Entry extends Observable {
+public abstract class Entry extends Observable {
 
-    private String _raw;
-
-    public Entry(String raw) {
-        _raw = raw;
-    }
+    private String _details = "";
+    private String _date = "---";
+    private String _time = "---";
+    private String _location = "---";
 
     @Override
     public String toString() {
-        return _raw;
+        return "Event: " + _details + " | Date: " + _date + " | Time: " + _time + " | Location: " + _location;
     }
 }

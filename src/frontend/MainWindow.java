@@ -3,6 +3,7 @@ package frontend;
 import backend.Entry;
 import backend.MainController;
 import backend.MainView;
+import backend.entries.EntryType;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,12 +53,12 @@ public class MainWindow extends JFrame implements MainView, Observer {
         int tabIndex = _tabbedPane.getSelectedIndex();
         if (tabIndex == 0) {
             _calendarModel.addElement(
-                    _controller.makeEntry(_inputField.getText())
+                    _controller.makeEntry(_inputField.getText(), EntryType.CALENDAR)
             );
         }
         else {
             _reminderModel.addElement(
-                    _controller.makeEntry(_inputField.getText())
+                    _controller.makeEntry(_inputField.getText(), EntryType.REMINDER)
             );
         }
 

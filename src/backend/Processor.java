@@ -1,5 +1,9 @@
 package backend;
 
+import backend.entries.Calendar;
+import backend.entries.EntryType;
+import backend.entries.Reminder;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,15 +49,25 @@ public class Processor implements MainController {
     private MainView _view;
 
     @Override
-    public Entry makeEntry(String input) {
+    public Entry makeEntry(String input, EntryType type) {
+        Entry entry = null;
+        switch (type){
+            case CALENDAR:
+                entry = new Calendar();
+                break;
+            case REMINDER:
+                entry = new Reminder();
+                break;
+        }
+
+        entry.addObserver(_view.getObserver());
+
         Matcher m = pattern_location.matcher(input);
         while (m.find()) {
             String match = m.group();
-
+            input = input.replace(match, "");
         }
 
-        Entry entry = new Entry(input);
-        entry.addObserver(_view.getObserver());
         return entry;
     }
 
