@@ -72,7 +72,7 @@ public class MainWindow extends JFrame implements MainView, Observer {
         _controller = controller;
         _controller.setMainView(this);
 
-        _tabbedPane.addTab("Calendar", _calendarEntries);
+        _tabbedPane.addTab("CalendarEntry", _calendarEntries);
         _calendarEntries.addMouseListener(_calendarMouseListener);
         _tabbedPane.addTab("Reminders", _reminderEntries);
         _reminderEntries.addMouseListener(_reminderMouseListener);
