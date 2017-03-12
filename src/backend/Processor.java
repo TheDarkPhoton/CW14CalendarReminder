@@ -29,8 +29,8 @@ public class Processor implements MainController {
 
     private static String match_date1 = "(" + match_weekday + " " + match_day + " " + match_month + ")";
     private static String match_date2 = "((([0-3](((?<!0)0)|((?<=[0-2])[1-9])|((?<=3)1)))|[1-9]) ?/ ?(([01](((?<!0)0)|((?<=0)[1-9])|((?<=1)[12])))|[1-9]) ?/ ?([2-9]\\d{3}))";
-    private static String match_date3 = "(on " + match_weekday + ")";
-    private static String match_date4 = "(next " + match_weekday + ")";
+    private static String match_date3 = "(\\bon " + match_weekday + ")";
+    private static String match_date4 = "(\\bnext " + match_weekday + ")";
 
     //matches _weekday day month format
     private static Pattern pattern_date1 = Pattern.compile(match_date1);
@@ -43,15 +43,15 @@ public class Processor implements MainController {
 
     private static String match_time1 = "([0-2]((?<!2)\\d|(?<=2)[0-3]) ?: ?[0-5]\\d)";
     private static String match_time2 = "(?<!: ?\\d?)(([01]((?<=0)\\d|[0-2])|(?<![01])\\d)( ?: ?[0-5]?\\d)?(am|pm))";
-    private static String match_time3 = "(evening)";
-    private static String match_time4 = "(morning)";
+    private static String match_time3 = "(\\bevening\\b)";
+    private static String match_time4 = "(\\bmorning\\b)";
 
     private static Pattern pattern_time1 = Pattern.compile(match_time1);
     private static Pattern pattern_time2 = Pattern.compile(match_time2);
     private static Pattern pattern_time3 = Pattern.compile(match_time3);
     private static Pattern pattern_time4 = Pattern.compile(match_time4);
 
-    private static Pattern pattern_location = Pattern.compile("at \\w+");
+    private static Pattern pattern_location = Pattern.compile("\\bat \\w+");
 
     private MainView _view;
 
@@ -298,13 +298,20 @@ public class Processor implements MainController {
                 entry = new ReminderEntry();
                 break;
         }
-
         entry.addObserver(_view.getObserver());
 
+        return editEntry(input, entry);
+    }
+
+    @Override
+    public Entry editEntry(String input, Entry entry) {
         input = extractDate(entry, input);
         input = extractTime(entry, input);
         input = extractLocation(entry, input);
-        entry.setDetails(input);
+        if (!input.equals(""))
+            entry.setDetails(input);
+
+        entry.notifyObservers();
 
         return entry;
     }

@@ -1,11 +1,12 @@
 package backend;
 
+import java.io.Serializable;
 import java.util.Observable;
 
 /**
  * Created by dovydas on 11/03/17.
  */
-public abstract class Entry extends Observable {
+public abstract class Entry extends Observable implements Serializable {
 
     protected String _details = "";
     protected String _date = "---";
@@ -14,17 +15,21 @@ public abstract class Entry extends Observable {
 
     public void setDetails(String details) {
         _details = details;
+        setChanged();
     }
 
     public void setDate(String date) {
-        if (_date.equals("---")) _date = date;
+        _date = date;
+        setChanged();
     }
 
     public void setTime(String time) {
-        if (_time.equals("---")) _time = time;
+        _time = time;
+        setChanged();
     }
 
     public void setLocation(String location) {
-        if (_location.equals("---")) _location = location;
+        _location = location;
+        setChanged();
     }
 }

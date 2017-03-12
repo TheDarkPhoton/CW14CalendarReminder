@@ -10,6 +10,7 @@ public class ReminderEntry extends Entry {
     @Override
     public void setDetails(String details) {
         _details = details.replace("remind me to", "").trim();
+        setChanged();
     }
 
     @Override

@@ -8,5 +8,6 @@ import backend.entries.EntryType;
 public interface MainController {
 
     Entry makeEntry(String input, EntryType type);
+    Entry editEntry(String input, Entry entry);
     void setMainView(MainView view);
 }
