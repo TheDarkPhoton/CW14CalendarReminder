@@ -93,6 +93,17 @@ public class MainWindow extends JFrame implements MainView, Observer, WindowList
         _inputField.setText("");
     };
 
+    private KeyListener _keyListener = new KeyAdapter() {
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                _calendarEntries.clearSelection();
+                _reminderEntries.clearSelection();
+            }
+        }
+    };
+
     public MainWindow() {
         super("");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -106,6 +117,10 @@ public class MainWindow extends JFrame implements MainView, Observer, WindowList
         add(_inputField, BorderLayout.SOUTH);
         _inputField.addActionListener(_inputActionListener);
         addWindowListener(this);
+        addKeyListener(_keyListener);
+        _inputField.addKeyListener(_keyListener);
+        _calendarEntries.addKeyListener(_keyListener);
+        _reminderEntries.addKeyListener(_keyListener);
 
         setPreferredSize(new Dimension(640, 480));
         pack();
