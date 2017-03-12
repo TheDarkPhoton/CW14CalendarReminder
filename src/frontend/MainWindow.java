@@ -57,28 +57,36 @@ public class MainWindow extends JFrame implements MainView, Observer, WindowList
             return;
         }
 
+        boolean edited = false;
         int tabIndex = _tabbedPane.getSelectedIndex();
-        //if calendar tab is selected do ..., otherwise do ... on reminders tab
+        //edit entry
         if (tabIndex == 0) {
             Entry entry = _calendarEntries.getSelectedValue();
-            //if there is nothing selected in the list make new entry, otherwise edit existing one
-            if (entry == null){
-                Entry item = _controller.makeEntry(_inputField.getText(), EntryType.CALENDAR);
-                _calendarModel.addElement(item);
-                _calendarEntries.setSelectedIndex(_calendarModel.indexOf(item));
-            } else {
+            //if nothing is selected edit existing entry
+            if (entry != null) {
                 _controller.editEntry(_inputField.getText(), entry);
+                edited = true;
+            }
+        } else {
+            Entry entry = _reminderEntries.getSelectedValue();
+            //if nothing is selected edit existing entry
+            if (entry != null) {
+                _controller.editEntry(_inputField.getText(), entry);
+                edited = true;
             }
         }
-        else {
-            Entry entry = _reminderEntries.getSelectedValue();
-            //if there is nothing selected in the list make new entry, otherwise edit existing one
-            if (entry == null){
-                Entry item = _controller.makeEntry(_inputField.getText(), EntryType.REMINDER);
+
+        //if entry was not edited then make new entry with input
+        if (!edited) {
+            String input = _inputField.getText();
+            if (input.matches("[Rr]emind [Mm]e [Tt]o.+")) {
+                Entry item = _controller.makeEntry(input, EntryType.REMINDER);
                 _reminderModel.addElement(item);
                 _reminderEntries.setSelectedIndex(_reminderModel.indexOf(item));
             } else {
-                _controller.editEntry(_inputField.getText(), entry);
+                Entry item = _controller.makeEntry(input, EntryType.CALENDAR);
+                _calendarModel.addElement(item);
+                _calendarEntries.setSelectedIndex(_calendarModel.indexOf(item));
             }
         }
 

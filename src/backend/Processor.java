@@ -29,7 +29,7 @@ public class Processor implements MainController {
 
     private static String match_date1 = "((" + match_weekday + " )?" + match_day + " " + match_month + ")";
     private static String match_date2 = "((([0-3](((?<!0)0)|((?<=[0-2])[1-9])|((?<=3)1)))|[1-9]) ?/ ?(([01](((?<!0)0)|((?<=0)[1-9])|((?<=1)[12])))|[1-9]) ?/ ?([2-9]\\d{3}))";
-    private static String match_date3 = "(\\bon " + match_weekday + ")";
+    private static String match_date3 = "(\\bon (the )?" + match_weekday + ")";
     private static String match_date4 = "(\\bnext " + match_weekday + ")";
 
     //matches weekday day month format
@@ -43,15 +43,15 @@ public class Processor implements MainController {
 
     private static String match_time1 = "([0-2]((?<!2)\\d|(?<=2)[0-3]) ?: ?[0-5]\\d)";
     private static String match_time2 = "(?<!: ?\\d?)(([01]((?<=0)\\d|[0-2])|(?<![01])\\d)( ?: ?[0-5]?\\d)?(am|pm))";
-    private static String match_time3 = "(\\bevening\\b)";
-    private static String match_time4 = "(\\bmorning\\b)";
+    private static String match_time3 = "((in the )?\\bevening\\b)";
+    private static String match_time4 = "((in the )?\\bmorning\\b)";
 
     private static Pattern pattern_time1 = Pattern.compile(match_time1);
     private static Pattern pattern_time2 = Pattern.compile(match_time2);
     private static Pattern pattern_time3 = Pattern.compile(match_time3);
     private static Pattern pattern_time4 = Pattern.compile(match_time4);
 
-    private static Pattern pattern_location = Pattern.compile("\\bat \\w+");
+    private static Pattern pattern_location = Pattern.compile("\\bat (the )?\\w+");
 
     private MainView _view;
 
@@ -137,17 +137,18 @@ public class Processor implements MainController {
         }
     }
 
-    private void dateFromWeekday(Calendar c, String weekday, int days){
+    private void dateFromWeekday(Calendar c, String weekday, int add_days){
         int current_day = c.get(Calendar.DAY_OF_MONTH);
         c.set(Calendar.DAY_OF_WEEK, _weekday.get(weekday));
 
         if (c.get(Calendar.DAY_OF_MONTH) - current_day <= 0)
-            validateCalendar(c, c.get(Calendar.DAY_OF_MONTH) + days);
+            validateCalendar(c, c.get(Calendar.DAY_OF_MONTH) + add_days);
         else
-            validateCalendar(c, c.get(Calendar.DAY_OF_MONTH) + days - 7);
+            validateCalendar(c, c.get(Calendar.DAY_OF_MONTH) + add_days - 7);
     }
 
     private String extractDate(Entry entry, String input){
+        //processes 'monday 1st jan' form dates
         Matcher match_date1 = pattern_date1.matcher(input);
         while (match_date1.find()) {
             String match = match_date1.group();
@@ -168,6 +169,7 @@ public class Processor implements MainController {
             entry.setDate(getDateFormattedString(c));
         }
 
+        //processes 'dd/mm/yyyy' form dates
         Matcher match_date2 = pattern_date2.matcher(input);
         while (match_date2.find()) {
             String match = match_date2.group();
@@ -182,6 +184,7 @@ public class Processor implements MainController {
             entry.setDate(getDateFormattedString(c));
         }
 
+        //processes 'on weekday' form dates
         Matcher match_date3 = pattern_date3.matcher(input);
         while (match_date3.find()) {
             String match = match_date3.group();
@@ -198,6 +201,7 @@ public class Processor implements MainController {
             entry.setDate(getDateFormattedString(c));
         }
 
+        //processes 'next weekday' form dates
         Matcher match_date4 = pattern_date4.matcher(input);
         while (match_date4.find()) {
             String match = match_date4.group();
@@ -218,6 +222,7 @@ public class Processor implements MainController {
     }
 
     private String extractTime(Entry entry, String input){
+        //processes 'hh:mm' form times
         Matcher match_time1 = pattern_time1.matcher(input);
         while (match_time1.find()) {
             String match = match_time1.group();
@@ -231,6 +236,7 @@ public class Processor implements MainController {
             entry.setTime(getTimeFormattedString(c));
         }
 
+        //processes '09pm', '09:54am', ... form times
         Matcher match_time2 = pattern_time2.matcher(input);
         while (match_time2.find()) {
             String match = match_time2.group();
@@ -255,6 +261,7 @@ public class Processor implements MainController {
             entry.setTime(getTimeFormattedString(c));
         }
 
+        //processes evening form time
         Matcher match_time3 = pattern_time3.matcher(input);
         while (match_time3.find()) {
             String match = match_time3.group();
@@ -268,6 +275,7 @@ public class Processor implements MainController {
             entry.setTime(getTimeFormattedString(c));
         }
 
+        //processes morning form time
         Matcher match_time4 = pattern_time4.matcher(input);
         while (match_time4.find()) {
             String match = match_time4.group();

@@ -2,14 +2,24 @@ package backend.entries;
 
 import backend.Entry;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Created by dovydas on 11/03/17.
  */
 public class ReminderEntry extends Entry {
+    private static Pattern pattern_reminder = Pattern.compile("[Rr]emind [Mm]e [Tt]o");
 
     @Override
     public void setDetails(String details) {
-        _details = details.replace("remind me to", "").trim();
+        Matcher match = pattern_reminder.matcher(details);
+        while (match.find()) {
+            String replace = match.group();
+            details = details.replace(replace, "").trim();
+        }
+
+        _details = details;
         setChanged();
     }
 
