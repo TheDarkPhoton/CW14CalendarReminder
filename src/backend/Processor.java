@@ -297,7 +297,9 @@ public class Processor implements MainController {
         while (m.find()) {
             String match = m.group();
             input = input.replace(match, "").trim();
-            entry.setLocation(match.replace("at", "").trim());
+            match = match.replace("at", "");
+            match = match.replace("the", "");
+            entry.setLocation(match.trim());
         }
 
         return input;
