@@ -85,12 +85,9 @@ public class MainWindow extends JFrame implements MainView, Observer, WindowList
         _inputField.setText("");
     };
 
-    public MainWindow(MainController controller) {
+    public MainWindow() {
         super("");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-        _controller = controller;
-        _controller.setMainView(this);
 
         _tabbedPane.addTab("Calendar", _calendarEntries);
         _calendarEntries.addMouseListener(_calendarMouseListener);
@@ -106,6 +103,11 @@ public class MainWindow extends JFrame implements MainView, Observer, WindowList
         pack();
 
         setVisible(true);
+    }
+
+    @Override
+    public void setMainController(MainController controller) {
+        _controller = controller;
     }
 
     @Override
@@ -139,10 +141,16 @@ public class MainWindow extends JFrame implements MainView, Observer, WindowList
 
             while (true){
                 Object o = in.readObject();
-                if (o instanceof CalendarEntry)
-                    _calendarModel.addElement(((Entry) o));
-                else if (o instanceof ReminderEntry)
-                    _reminderModel.addElement(((Entry) o));
+                if (o instanceof CalendarEntry) {
+                    Entry entry = ((Entry) o);
+                    entry.addObserver(this);
+                    _calendarModel.addElement(entry);
+                }
+                else if (o instanceof ReminderEntry) {
+                    Entry entry = ((Entry) o);
+                    entry.addObserver(this);
+                    _reminderModel.addElement(entry);
+                }
             }
         } catch (EOFException i) {
             try {

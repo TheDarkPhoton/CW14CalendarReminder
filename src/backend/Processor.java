@@ -19,26 +19,26 @@ public class Processor implements MainController {
     private static String match_2nd = "((([2-9](?<!1)2)|(?<!\\d)2)nd)";
     private static String match_3rd = "((([2-9](?<!1)3)|(?<!\\d)3)rd)";
     private static String match_xth = "(\\d?((?<=1)\\d|[04-9])th)";
-    private static String match_weekday = "(mon|tues|wednes|thurs|fri|satur|sun)day";
+    private static String match_weekday = "([Mm]on|[Ww]ednes|[Tt](ues|hurs)|[Ff]ri|[Ss](atur|un))day";
     private static String match_day = "(" + match_1st + "|" + match_2nd + "|" + match_3rd + "|" + match_xth + ")";
-    private static String match_month = "(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|jun(e)?|jul(y)?|aug(ust)?|sep(tember)?|oct(ober)?|(nov|dec)(ember)?)";
+    private static String match_month = "([Jj]an(uary)?|[Ff]eb(ruary)?|[Mm]ar(ch)?|[Aa]pr(il)?|[Mm]ay|[Jj]un(e)?|[Jj]ul(y)?|[Aa]ug(ust)?|[Ss]ep(tember)?|[Oo]ct(ober)?|([Nn]ov|[Dd]ec)(ember)?)";
 
     private static Pattern pattern_weekday = Pattern.compile(match_weekday);
     private static Pattern pattern_day = Pattern.compile("\\d\\d?");
     private static Pattern pattern_month = Pattern.compile(match_month);
 
-    private static String match_date1 = "(" + match_weekday + " " + match_day + " " + match_month + ")";
+    private static String match_date1 = "((" + match_weekday + " )?" + match_day + " " + match_month + ")";
     private static String match_date2 = "((([0-3](((?<!0)0)|((?<=[0-2])[1-9])|((?<=3)1)))|[1-9]) ?/ ?(([01](((?<!0)0)|((?<=0)[1-9])|((?<=1)[12])))|[1-9]) ?/ ?([2-9]\\d{3}))";
     private static String match_date3 = "(\\bon " + match_weekday + ")";
     private static String match_date4 = "(\\bnext " + match_weekday + ")";
 
-    //matches _weekday day month format
+    //matches weekday day month format
     private static Pattern pattern_date1 = Pattern.compile(match_date1);
     //matches 01/02/2000, 1/2/2000 or any variant
     private static Pattern pattern_date2 = Pattern.compile(match_date2);
-    //matches on _weekday
+    //matches on weekday
     private static Pattern pattern_date3 = Pattern.compile(match_date3);
-    //matches next _weekday
+    //matches next weekday
     private static Pattern pattern_date4 = Pattern.compile(match_date4);
 
     private static String match_time1 = "([0-2]((?<!2)\\d|(?<=2)[0-3]) ?: ?[0-5]\\d)";
@@ -106,6 +106,11 @@ public class Processor implements MainController {
             "th", "st",
     };
 
+    public Processor(MainView view) {
+        _view = view;
+        _view.setMainController(this);
+    }
+
     private String getDateFormattedString(Calendar calendar){
         String result = new SimpleDateFormat("EEEE @ MMMM").format(calendar.getTime());
         int day_of_month = calendar.get(Calendar.DAY_OF_MONTH);
@@ -150,12 +155,13 @@ public class Processor implements MainController {
             Calendar c = Calendar.getInstance();
             Matcher match_day = pattern_day.matcher(match);
             while (match_day.find()) {
-                c.set(Calendar.DAY_OF_MONTH, Integer.parseInt(match_day.group()));
+                String s = match_day.group();
+                c.set(Calendar.DAY_OF_MONTH, Integer.parseInt(s));
             }
 
             Matcher match_month = pattern_month.matcher(match);
             while (match_month.find()) {
-                c.set(Calendar.MONTH, month.get(match_month.group()));
+                c.set(Calendar.MONTH, month.get(match_month.group().toLowerCase()));
             }
 
             input = input.replace(match, "").trim();
@@ -254,7 +260,8 @@ public class Processor implements MainController {
             String match = match_time3.group();
 
             Calendar c = Calendar.getInstance();
-            c.set(Calendar.HOUR, 20);
+            //sets time to 08:00pm
+            c.set(Calendar.HOUR_OF_DAY, 20);
             c.set(Calendar.MINUTE, 0);
 
             input = input.replace(match, "").trim();
@@ -266,7 +273,8 @@ public class Processor implements MainController {
             String match = match_time4.group();
 
             Calendar c = Calendar.getInstance();
-            c.set(Calendar.HOUR, 9);
+            //sets time to 09:00am
+            c.set(Calendar.HOUR_OF_DAY, 9);
             c.set(Calendar.MINUTE, 0);
 
             input = input.replace(match, "").trim();
@@ -316,8 +324,4 @@ public class Processor implements MainController {
         return entry;
     }
 
-    @Override
-    public void setMainView(MainView view) {
-        _view = view;
-    }
 }

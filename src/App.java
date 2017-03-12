@@ -7,6 +7,6 @@ import frontend.MainWindow;
 public class App {
 
     public static void main(String[] args) {
-        new MainWindow(new Processor());
+        new Processor(new MainWindow());
     }
 }
