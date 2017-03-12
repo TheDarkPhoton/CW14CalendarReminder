@@ -13,7 +13,7 @@ public abstract class Entry extends Observable {
     private String _location = "---";
 
     public void setDetails(String details) {
-        if (_details.equals("---")) _details = details;
+        _details = details;
     }
 
     public void setDate(String date) {

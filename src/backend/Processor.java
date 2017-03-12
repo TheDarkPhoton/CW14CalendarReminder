@@ -32,17 +32,17 @@ public class Processor implements MainController {
     private static String match_date3 = "(on " + match_weekday + ")";
     private static String match_date4 = "(next " + match_weekday + ")";
 
-    //matches weekday day month format
+    //matches _weekday day month format
     private static Pattern pattern_date1 = Pattern.compile(match_date1);
     //matches 01/02/2000, 1/2/2000 or any variant
     private static Pattern pattern_date2 = Pattern.compile(match_date2);
-    //matches on weekday
+    //matches on _weekday
     private static Pattern pattern_date3 = Pattern.compile(match_date3);
-    //matches next weekday
+    //matches next _weekday
     private static Pattern pattern_date4 = Pattern.compile(match_date4);
 
     private static String match_time1 = "([0-2]((?<!2)\\d|(?<=2)[0-3]) ?: ?[0-5]\\d)";
-    private static String match_time2 = "(([01]((?<=0)\\d|[0-2])|(?<![01])\\d)(am|pm))";
+    private static String match_time2 = "(?<!: ?\\d?)(([01]((?<=0)\\d|[0-2])|(?<![01])\\d)( ?: ?[0-5]?\\d)?(am|pm))";
     private static String match_time3 = "(evening)";
     private static String match_time4 = "(morning)";
 
@@ -86,17 +86,17 @@ public class Processor implements MainController {
         month.put("dec", 11);
     }
 
-    private static final Map<String, Integer> weekday;
+    private static final Map<String, Integer> _weekday;
     static
     {
-        weekday = new HashMap<>();
-        weekday.put("saturday", 0);
-        weekday.put("sunday", 1);
-        weekday.put("monday", 2);
-        weekday.put("tuesday", 3);
-        weekday.put("wednesday", 4);
-        weekday.put("thursday", 5);
-        weekday.put("friday", 6);
+        _weekday = new HashMap<>();
+        _weekday.put("sunday", 1);
+        _weekday.put("monday", 2);
+        _weekday.put("tuesday", 3);
+        _weekday.put("wednesday", 4);
+        _weekday.put("thursday", 5);
+        _weekday.put("friday", 6);
+        _weekday.put("saturday", 7);
     }
 
     private static String[] suffixes = {
@@ -106,29 +106,40 @@ public class Processor implements MainController {
             "th", "st",
     };
 
-    private String getFormattedString(Calendar calendar){
+    private String getDateFormattedString(Calendar calendar){
         String result = new SimpleDateFormat("EEEE @ MMMM").format(calendar.getTime());
         int day_of_month = calendar.get(Calendar.DAY_OF_MONTH);
         result = result.replace("@", day_of_month + suffixes[day_of_month]);
         return result;
     }
 
-    private void validateCalendar(Calendar c){
-        try {
-            c.getTime();
-        } catch (IllegalArgumentException e) {
-            int day = c.get(Calendar.DAY_OF_MONTH) - c.getMaximum(Calendar.DAY_OF_MONTH);
-            if (day > 0) {
-                c.set(Calendar.MONTH, c.get(Calendar.MONTH) + 1);
-                c.set(Calendar.DAY_OF_MONTH, day);
-            }
+    private String getTimeFormattedString(Calendar calendar){
+        return new SimpleDateFormat("HH:mm").format(calendar.getTime());
+    }
 
-            int month = c.get(Calendar.MONTH) - c.getMaximum(Calendar.MONTH);
-            if (month > 0) {
+    private void validateCalendar(Calendar c, int new_day){
+        if (c.getMaximum(Calendar.DAY_OF_MONTH) < new_day){
+            c.set(Calendar.DAY_OF_MONTH, new_day - c.getMaximum(Calendar.DAY_OF_MONTH));
+            int current_month = c.get(Calendar.MONTH);
+            if (c.getMaximum(Calendar.MONTH) - current_month < 0){
+                c.set(Calendar.MONTH, current_month - c.getMaximum(Calendar.MONTH));
                 c.set(Calendar.YEAR, c.get(Calendar.YEAR) + 1);
-                c.set(Calendar.MONTH, month);
+            } else {
+                c.set(Calendar.MONTH, current_month);
             }
+        } else {
+            c.set(Calendar.DAY_OF_MONTH, new_day);
         }
+    }
+
+    private void dateFromWeekday(Calendar c, String weekday, int days){
+        int current_day = c.get(Calendar.DAY_OF_MONTH);
+        c.set(Calendar.DAY_OF_WEEK, _weekday.get(weekday));
+
+        if (c.get(Calendar.DAY_OF_MONTH) - current_day <= 0)
+            validateCalendar(c, c.get(Calendar.DAY_OF_MONTH) + days);
+        else
+            validateCalendar(c, c.get(Calendar.DAY_OF_MONTH) + days - 7);
     }
 
     private String extractDate(Entry entry, String input){
@@ -148,7 +159,7 @@ public class Processor implements MainController {
             }
 
             input = input.replace(match, "").trim();
-            entry.setDate(getFormattedString(c));
+            entry.setDate(getDateFormattedString(c));
         }
 
         Matcher match_date2 = pattern_date2.matcher(input);
@@ -162,7 +173,7 @@ public class Processor implements MainController {
             c.set(Calendar.YEAR, Integer.parseInt(parts[2]));
 
             input = input.replace(match, "").trim();
-            entry.setDate(getFormattedString(c));
+            entry.setDate(getDateFormattedString(c));
         }
 
         Matcher match_date3 = pattern_date3.matcher(input);
@@ -173,18 +184,12 @@ public class Processor implements MainController {
             c.setLenient(false);
             Matcher match_weekday = pattern_weekday.matcher(match);
             while (match_weekday.find()) {
-                int current_date = c.get(Calendar.DAY_OF_MONTH);
-                c.set(Calendar.DAY_OF_WEEK, weekday.get(match_weekday.group()));
-                if (c.get(Calendar.DAY_OF_MONTH) - current_date <= 0)
-                    c.set(Calendar.DAY_OF_MONTH, c.get(Calendar.DAY_OF_MONTH) + 7);
-
-//                validateCalendar(c);
-
-                System.out.println(getFormattedString(c));
+                dateFromWeekday(c, match_weekday.group(), 7);
+                System.out.println(getDateFormattedString(c));
             }
 
             input = input.replace(match, "").trim();
-            entry.setDate(getFormattedString(c));
+            entry.setDate(getDateFormattedString(c));
         }
 
         Matcher match_date4 = pattern_date4.matcher(input);
@@ -195,28 +200,77 @@ public class Processor implements MainController {
             c.setLenient(false);
             Matcher match_weekday = pattern_weekday.matcher(match);
             while (match_weekday.find()) {
-                int current_date = c.get(Calendar.DAY_OF_MONTH);
-                c.set(Calendar.DAY_OF_WEEK, weekday.get(match_weekday.group()));
-                c.set(Calendar.DAY_OF_MONTH, c.get(Calendar.DAY_OF_MONTH) + 7);
-                if (c.get(Calendar.DAY_OF_MONTH) - current_date <= 7)
-                    c.set(Calendar.DAY_OF_MONTH, c.get(Calendar.DAY_OF_MONTH) + 7);
-
-                System.out.println(getFormattedString(c));
+                dateFromWeekday(c, match_weekday.group(), 14);
+                System.out.println(getDateFormattedString(c));
             }
 
             input = input.replace(match, "").trim();
-            entry.setDate(getFormattedString(c));
+            entry.setDate(getDateFormattedString(c));
         }
 
         return input;
     }
 
     private String extractTime(Entry entry, String input){
-        Matcher m = pattern_time1.matcher(input);
-        while (m.find()) {
-            String match = m.group();
+        Matcher match_time1 = pattern_time1.matcher(input);
+        while (match_time1.find()) {
+            String match = match_time1.group();
+            String[] numbers = match.split(" ?: ?");
+
+            Calendar c = Calendar.getInstance();
+            c.set(Calendar.HOUR, Integer.parseInt(numbers[0]));
+            c.set(Calendar.MINUTE, Integer.parseInt(numbers[1]));
+
             input = input.replace(match, "").trim();
-            entry.setTime(match);
+            entry.setTime(getTimeFormattedString(c));
+        }
+
+        Matcher match_time2 = pattern_time2.matcher(input);
+        while (match_time2.find()) {
+            String match = match_time2.group();
+
+            Calendar c = Calendar.getInstance();
+
+            String[] numbers = {};
+            if (match.matches(".+am")){
+                numbers = match.replace("am", "").split(" ?: ?");
+                c.set(Calendar.HOUR, Integer.parseInt(numbers[0]));
+            } else {
+                numbers = match.replace("pm", "").split(" ?: ?");
+                c.set(Calendar.HOUR, Integer.parseInt(numbers[0]) + 12);
+            }
+
+            if (numbers.length > 1)
+                c.set(Calendar.MINUTE, Integer.parseInt(numbers[1]));
+            else
+                c.set(Calendar.MINUTE, 0);
+
+            input = input.replace(match, "").trim();
+            entry.setTime(getTimeFormattedString(c));
+        }
+
+        Matcher match_time3 = pattern_time3.matcher(input);
+        while (match_time3.find()) {
+            String match = match_time3.group();
+
+            Calendar c = Calendar.getInstance();
+            c.set(Calendar.HOUR, 20);
+            c.set(Calendar.MINUTE, 0);
+
+            input = input.replace(match, "").trim();
+            entry.setTime(getTimeFormattedString(c));
+        }
+
+        Matcher match_time4 = pattern_time4.matcher(input);
+        while (match_time4.find()) {
+            String match = match_time4.group();
+
+            Calendar c = Calendar.getInstance();
+            c.set(Calendar.HOUR, 9);
+            c.set(Calendar.MINUTE, 0);
+
+            input = input.replace(match, "").trim();
+            entry.setTime(getTimeFormattedString(c));
         }
 
         return input;
@@ -227,7 +281,7 @@ public class Processor implements MainController {
         while (m.find()) {
             String match = m.group();
             input = input.replace(match, "").trim();
-            entry.setLocation(match);
+            entry.setLocation(match.replace("at", "").trim());
         }
 
         return input;
