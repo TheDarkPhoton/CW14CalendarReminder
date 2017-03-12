@@ -7,10 +7,10 @@ import java.util.Observable;
  */
 public abstract class Entry extends Observable {
 
-    private String _details = "";
-    private String _date = "---";
-    private String _time = "---";
-    private String _location = "---";
+    protected String _details = "";
+    protected String _date = "---";
+    protected String _time = "---";
+    protected String _location = "---";
 
     public void setDetails(String details) {
         _details = details;
@@ -26,10 +26,5 @@ public abstract class Entry extends Observable {
 
     public void setLocation(String location) {
         if (_location.equals("---")) _location = location;
-    }
-
-    @Override
-    public String toString() {
-        return "Event: " + _details + " | Date: " + _date + " | Time: " + _time + " | Location: " + _location;
     }
 }
